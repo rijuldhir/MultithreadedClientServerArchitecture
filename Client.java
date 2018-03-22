@@ -13,6 +13,14 @@ public class Client
 // this thread is for processing a particular request
 class ProcessRequest extends Thread
 {
+	private Socket soc;
+	
+	// constructor
+	public ProcessRequest(Socket soc) 
+	{
+		this.soc = soc;
+	}
+	
 	@Override
 	public void run()
 	{
