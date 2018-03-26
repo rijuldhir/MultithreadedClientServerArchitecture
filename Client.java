@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -104,7 +106,7 @@ class ProcessRequest extends Thread
 		}
 		catch (Exception e) 
 		{
-			System.out.println("Something unknown occured");
+			System.out.println("Something unknown occured in ProcessRequest");
 			return ;
 		}
 	}
@@ -153,7 +155,7 @@ class GenerateSequence extends Thread
 		}
 		catch(Exception e)
 		{
-			System.out.println("Something unknown occured");
+			System.out.println("Something unknown occured in GenerateSequence");
 			return ;
 		}
 	}
@@ -175,7 +177,19 @@ class WriteSequence extends Thread
 	@Override
 	public void run()
 	{
-		
+		try 
+		{
+			// writing the fibbnacci sequence to the file
+			PrintStream ps = new PrintStream(blankFile);
+			for(int i = 0;i < sequence.length;i++)
+				ps.println(sequence[i]);
+			ps.close();
+		}
+		catch(Exception e)
+		{
+			System.out.println("Something unknown occured in WriteSequence.");
+			return ;
+		}
 	}
 }
 
