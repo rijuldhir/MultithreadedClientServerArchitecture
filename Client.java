@@ -72,7 +72,7 @@ class ProcessRequest extends Thread
 			int[] sequence = new int[n];
 			
 			// generating fibbonacci sequence
-			Thread sequenceThread = new GenerateSequence(n, sequence);
+			Thread sequenceThread = new GenerateSequence(n, sequence, soc);
 			sequenceThread.start();
 			sequenceThread.join();
 			
@@ -104,9 +104,7 @@ class ProcessRequest extends Thread
 		}
 		catch (Exception e) 
 		{
-			String msg = "Something unknown occured";
-			System.out.println(msg);
-			Client.sendErrorMsg(soc, msg);
+			System.out.println("Something unknown occured");
 			return ;
 		}
 	}
@@ -117,17 +115,47 @@ class GenerateSequence extends Thread
 {
 	private int n;
 	private int[] sequence;
+	private Socket soc;
+	
 	// constructor
-	public GenerateSequence(int n, int[] sequence)
+	public GenerateSequence(int n, int[] sequence, Socket soc)
 	{
 		this.n = n;
 		this.sequence = sequence;
+		this.soc = soc;
 	}
 	
 	@Override
 	public void run()
 	{
-		
+		try
+		{
+			// if n <= 0 send error msg
+			if(n <= 0)
+			{
+				String msg = "n must be a positive integer";
+				System.out.println(msg);
+				Client.sendErrorMsg(soc, msg);
+				return ;
+			}
+			
+			sequence[0] = 0;
+			if(n == 1)
+				return ;
+			
+			sequence[1] = 1;
+			
+			// generating fibbonacci sequence
+			for(int i = 2;i < n;i++)
+				sequence[i] = sequence[i-1] + sequence[i-2];
+			
+			return ;
+		}
+		catch(Exception e)
+		{
+			System.out.println("Something unknown occured");
+			return ;
+		}
 	}
 }
 
