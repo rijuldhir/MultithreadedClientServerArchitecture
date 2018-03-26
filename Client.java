@@ -248,6 +248,22 @@ class HandleAcknowledgement extends Thread
 	@Override
 	public void run()
 	{
-		
+		try
+		{
+			// reading the ack
+			BufferedReader reader = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+			String response = reader.readLine();
+			if(response.equals("SUCCESS"))
+				System.out.println("Request successfully served. Closing the connection...");
+			else
+				System.out.println("Positive ack not recieved. Closing the connection...");
+			
+			soc.close();
+		}
+		catch(Exception e)
+		{
+			System.out.println("Something unknown occured in HandleAcknowledgement");
+			return ;
+		}
 	}
 }
