@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -22,6 +24,14 @@ public class Client
 			new_thread.start();
 		}
 	}
+	
+	// this method sends the error message to the server
+	public static void sendErrorMsg(Socket soc, String msg) throws Exception
+	{
+		String response = "Error " + msg + "\n";
+		soc.getOutputStream().write(response.getBytes("UTF-8"));
+		soc.close();
+	}
 }
 
 // this thread is for processing a particular request
@@ -38,7 +48,67 @@ class ProcessRequest extends Thread
 	@Override
 	public void run()
 	{
-		
+		try
+		{
+			// Read the request from the server
+			BufferedReader reader = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+			String request = reader.readLine();
+			
+			// request is of the format "blank_file_name integer"
+			String requestFormat = "[a-zA-Z0-9.]+ \\d+";
+			if(!request.matches(requestFormat))
+			{
+				String msg = "Invalid request format.";
+				System.out.println(msg);
+				Client.sendErrorMsg(soc, msg);
+				return ;
+			}
+			
+			// get the blank file name and integer n
+			String blankFileName = request.split(" ")[0];
+			int n = Integer.parseInt(request.split(" ")[1]);
+			
+			// array to be shared by this and the next thread
+			int[] sequence = new int[n];
+			
+			// generating fibbonacci sequence
+			Thread sequenceThread = new GenerateSequence(n, sequence);
+			sequenceThread.start();
+			sequenceThread.join();
+			
+			// file to which the sequence has to be written
+			File blankFile = new File(blankFileName);
+			if(blankFile.exists())
+			{
+				String msg = "This file temporarily exists in the system. Try again sometime later.";
+				System.out.println(msg);
+				Client.sendErrorMsg(soc, msg);
+				return ;
+			}
+			
+			blankFile.createNewFile();
+			
+			// writing to the blank file
+			Thread writeThread = new WriteSequence(blankFile, sequence);
+			writeThread.start();
+			writeThread.join();
+			
+			// sending the file to the server
+			Thread sendThread = new SendFile(blankFile, soc);
+			sendThread.start();
+			sendThread.join();
+			
+			// thread for acknowledgement
+			Thread ackThread = new HandleAcknowledgement(soc);
+			ackThread.start();
+		}
+		catch (Exception e) 
+		{
+			String msg = "Something unknown occured";
+			System.out.println(msg);
+			Client.sendErrorMsg(soc, msg);
+			return ;
+		}
 	}
 }
 
@@ -46,11 +116,12 @@ class ProcessRequest extends Thread
 class GenerateSequence extends Thread
 {
 	private int n;
-	
+	private int[] sequence;
 	// constructor
-	public GenerateSequence(int n)
+	public GenerateSequence(int n, int[] sequence)
 	{
 		this.n = n;
+		this.sequence = sequence;
 	}
 	
 	@Override
