@@ -1,12 +1,26 @@
 import java.io.File;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 // this class handles all the client side architecture
 public class Client
 {
-	public static void main()
+	// this client always listens to this port for requests
+	public static final int listeningPort = 2737;
+	
+	// 1)catch the server requests
+	// 2)create a thread to handle the request
+	public static void main() throws Exception
 	{
+		// create a socket to accept requests at port specified
+		ServerSocket ss = new ServerSocket(listeningPort);
 		
+		while(true)
+		{
+			Socket cs = ss.accept();
+			Thread new_thread = new ProcessRequest(cs);
+			new_thread.start();
+		}
 	}
 }
 
