@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -209,7 +210,28 @@ class SendFile extends Thread
 	@Override
 	public void run()
 	{
-		
+		try
+		{
+			// sending success message indicating arrival of the file containing the fibbonacci sequence
+			String response = "Ok. Sending file...\n";
+			soc.getOutputStream().write(response.getBytes("UTF-8"));
+			
+			// getting file input stream
+			FileInputStream fis = new FileInputStream(toSend);
+			
+			// sending file to the server
+			byte[] sendData = new byte[1024];
+			int lengthRead;
+			while((lengthRead = fis.read(sendData)) != -1)
+				soc.getOutputStream().write(sendData, 0, lengthRead);
+			
+			fis.close();
+		}
+		catch(Exception e)
+		{
+			System.out.println("Something unknown occured in SendFile");
+			return ;
+		}
 	}
 }
 
