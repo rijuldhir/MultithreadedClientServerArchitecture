@@ -1,26 +1,46 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Scanner;
 
-// this class handles all the Server side architecture
-public class Server
-{
+public class Server {
+
 	public static final int Port = 2737;
-	public static void main()
+	public static void main() throws Exception
 	{
 		Scanner in = new Scanner(System.in);
 		while(true){
-		Socket cs = new Socket("localhost",Port);
-		//DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		
-		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+		Socket cs = null;
+                    try {
+                        cs = new Socket("localhost",Port);
+                        //DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                    } catch (IOException ex) {
+                        System.out.println(ex);
+                    }
 		System.out.println("Enter Integer n and FileName");
 		int n = in.nextInt();
 		if(n==-1)
 			break;
 		String fileName = in.next();
-		Thread new_thread = new generateRequest(cs,fileName,n)
+		File file = new File(fileName);
+		if(file.exists())
+		{
+			String msg = "This file exists in the system. Choose a different Name.";
+			System.out.println(msg);
+			continue;
+		}
+		file.createNewFile();	
+		Thread new_thread = new generateRequest(cs,fileName,n);
 		new_thread.start();
-		new_thread.join();
+                    try {
+                        new_thread.join();
+                    } catch (InterruptedException ex) {
+                        System.out.println(ex);
+                    }
 		}
 	}
 }
@@ -41,8 +61,34 @@ class generateRequest extends Thread
 	@Override
 	public void run()
 	{
-		//PrintWriter outToClient = new PrintWriter(sock.getOutputStream(),true);
-		
+		String request = fileName+" "+n+"\n";
+                try{
+		sock.getOutputStream().write(request.getBytes("UTF-8"));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+		String response = reader.readLine();
+                BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
+                if(response.startsWith("Ok"))
+                {
+                    File file = new File(fileName);
+                    FileOutputStream fis = new FileOutputStream(file);
+                    int data;
+                    data = bis.read();
+                    while(data != -1){
+                        fis.write(data);
+                        data = bis.read();   
+                    }
+                    fis.close();
+                }
+                else
+                {
+                    System.out.println(response);
+                    return ;
+                }
+                }
+                catch(Exception ex)
+                {
+                    System.out.println(ex);
+                }
 	}
 }
 
