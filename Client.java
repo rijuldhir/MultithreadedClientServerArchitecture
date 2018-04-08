@@ -15,7 +15,7 @@ public class Client
 	
 	// 1)catch the server requests
 	// 2)create a thread to handle the request
-	public static void main() throws Exception
+	public static void main(String [] args) throws Exception
 	{
 		// create a socket to accept requests at port specified
 		ServerSocket ss = new ServerSocket(listeningPort);
@@ -23,6 +23,7 @@ public class Client
 		while(true)
 		{
 			Socket cs = ss.accept();
+			System.out.println("Connection Established");
 			Thread new_thread = new ProcessRequest(cs);
 			new_thread.start();
 		}
@@ -57,6 +58,7 @@ class ProcessRequest extends Thread
 			BufferedReader reader = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			String request = reader.readLine();
 			
+			System.out.println("Incoming Request: "+request);
 			// request is of the format "blank_file_name integer"
 			String requestFormat = "[a-zA-Z0-9.]+ \\d+";
 			if(!request.matches(requestFormat))
