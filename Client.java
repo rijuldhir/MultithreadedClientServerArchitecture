@@ -216,7 +216,9 @@ class SendFile extends Thread
 		{
 			// sending success message indicating arrival of the file containing the fibbonacci sequence
 			String response = "Ok. Sending file...\n";
+			String size = toSend.length()+"\n";
 			soc.getOutputStream().write(response.getBytes("UTF-8"));
+			soc.getOutputStream().write(size.getBytes("UTF-8"));
 			
 			// getting file input stream
 			FileInputStream fis = new FileInputStream(toSend);
