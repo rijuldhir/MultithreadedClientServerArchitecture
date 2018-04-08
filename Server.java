@@ -16,12 +16,12 @@ public class Server {
 		Scanner in = new Scanner(System.in);
 		while(true){
 		Socket cs = null;
-                    try {
-                        cs = new Socket("localhost",Port);
-                    } catch (IOException ex) {
-                        System.out.println(ex);
-                        continue;
-                    }
+        try {
+            cs = new Socket("localhost",Port);
+        } catch (IOException ex) {
+            System.out.println(ex);
+            continue;
+        }
 		System.out.println("Enter Integer n and FileName");
 		int n = in.nextInt();
 		if(n==-1)
@@ -67,7 +67,10 @@ class generateRequest extends Thread
 		sock.getOutputStream().write(request.getBytes("UTF-8"));
 		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		String response = reader.readLine();
-        //reader.close();
+		int size = Integer.parseInt(reader.readLine());
+		System.out.println(response);
+		System.out.println(size);
+		int count  = 1;
         BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
             if(response.startsWith("Ok"))
             {
@@ -75,9 +78,10 @@ class generateRequest extends Thread
                 FileOutputStream fis = new FileOutputStream(file);
                 int data;
                 data = bis.read();
-                while(data != -1){
-                    fis.write(data);
-                    data = bis.read();   
+                while(count < size){
+                        fis.write(data);
+                        data = bis.read();   
+						count++;
                 }
                 fis.close();
             }
@@ -115,7 +119,7 @@ class handleAcknowledgment extends Thread
 	@Override
 	public void run()
 	{
-		String response = "SUCCESS";
+		String response = "SUCCESS\n";
             try {
                 sock.getOutputStream().write(response.getBytes("UTF-8"));
             } catch (IOException ex) {
