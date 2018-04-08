@@ -11,7 +11,7 @@ import java.util.Scanner;
 public class Server {
 
 	public static final int Port = 2737;
-	public static void main() throws Exception
+	public static void main(String[] args) throws Exception
 	{
 		Scanner in = new Scanner(System.in);
 		while(true){
@@ -27,21 +27,21 @@ public class Server {
 		if(n==-1)
 			break;
 		String fileName = in.next();
-		File file = new File(fileName);
+		/*File file = new File(fileName);
 		if(file.exists())
 		{
 			String msg = "This file exists in the system. Choose a different Name.";
 			System.out.println(msg);
 			continue;
 		}
-		file.createNewFile();	
+		file.createNewFile();*/	
 		Thread new_thread = new generateRequest(cs,fileName,n);
 		new_thread.start();
-                    try {
-                        new_thread.join();
-                    } catch (InterruptedException ex) {
-                        System.out.println(ex);
-                    }
+        try {
+                new_thread.join();
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
 		}
 	}
 }
@@ -63,42 +63,42 @@ class generateRequest extends Thread
 	public void run()
 	{
 		String request = fileName+" "+n+"\n";
-                try{
+        try{
 		sock.getOutputStream().write(request.getBytes("UTF-8"));
 		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		String response = reader.readLine();
-                reader.close();
-                BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
-                if(response.startsWith("Ok"))
-                {
-                    File file = new File(fileName);
-                    FileOutputStream fis = new FileOutputStream(file);
-                    int data;
-                    data = bis.read();
-                    while(data != -1){
-                        fis.write(data);
-                        data = bis.read();   
-                    }
-                    fis.close();
+        //reader.close();
+        BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
+            if(response.startsWith("Ok"))
+            {
+                File file = new File(fileName);
+                FileOutputStream fis = new FileOutputStream(file);
+                int data;
+                data = bis.read();
+                while(data != -1){
+                    fis.write(data);
+                    data = bis.read();   
                 }
-                else
-                {
-                    System.out.println(response);
-                    return ;
-                }
-                }
-                catch(Exception ex)
-                {
-                    System.out.println(ex);
-                    return ;
-                }
-                handleAcknowledgment ack = new handleAcknowledgment(sock);
-                ack.start();
-            try {
-                ack.join();
-            } catch (InterruptedException ex) {
-                System.out.println(ex);
+                fis.close();
             }
+            else
+            {
+                System.out.println(response);
+                return ;
+            }
+        }
+        catch(Exception ex)
+            {
+                System.out.println(ex);
+                return ;
+            }
+        handleAcknowledgment ack = new handleAcknowledgment(sock);
+        ack.start();
+        try {
+            ack.join();
+        } catch (InterruptedException ex) {
+            System.out.println(ex);
+        }
 	}
 }
 
