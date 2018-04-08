@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Scanner;
 
+
 public class Server {
 
 	public static final int Port = 2737;
@@ -17,9 +18,9 @@ public class Server {
 		Socket cs = null;
                     try {
                         cs = new Socket("localhost",Port);
-                        //DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
                     } catch (IOException ex) {
                         System.out.println(ex);
+                        continue;
                     }
 		System.out.println("Enter Integer n and FileName");
 		int n = in.nextInt();
@@ -66,6 +67,7 @@ class generateRequest extends Thread
 		sock.getOutputStream().write(request.getBytes("UTF-8"));
 		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		String response = reader.readLine();
+                reader.close();
                 BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
                 if(response.startsWith("Ok"))
                 {
@@ -88,7 +90,15 @@ class generateRequest extends Thread
                 catch(Exception ex)
                 {
                     System.out.println(ex);
+                    return ;
                 }
+                handleAcknowledgment ack = new handleAcknowledgment(sock);
+                ack.start();
+            try {
+                ack.join();
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
 	}
 }
 
@@ -105,6 +115,11 @@ class handleAcknowledgment extends Thread
 	@Override
 	public void run()
 	{
-		
+		String response = "SUCCESS";
+            try {
+                sock.getOutputStream().write(response.getBytes("UTF-8"));
+            } catch (IOException ex) {
+                System.out.println(ex);
+            }
 	}
 }
