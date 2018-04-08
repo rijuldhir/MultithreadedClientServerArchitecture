@@ -14,6 +14,7 @@ public class Server {
 	public static void main(String[] args) throws Exception
 	{
 		Scanner in = new Scanner(System.in);
+		System.out.println("Input -1 to STOP SERVER");
 		while(true){
 		Socket cs = null;
         try {
@@ -67,15 +68,15 @@ class generateRequest extends Thread
 		sock.getOutputStream().write(request.getBytes("UTF-8"));
 		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		String response = reader.readLine();
-		int size = Integer.parseInt(reader.readLine());
 		System.out.println(response);
-		System.out.println(size);
 		int count  = 1;
         BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
             if(response.startsWith("Ok"))
             {
                 File file = new File(fileName);
                 FileOutputStream fis = new FileOutputStream(file);
+				int size = Integer.parseInt(reader.readLine());
+				System.out.println(size);
                 int data;
                 data = bis.read();
                 while(count < size){
