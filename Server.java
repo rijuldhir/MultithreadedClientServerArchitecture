@@ -1,48 +1,67 @@
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
 
-public class Server {
+public class Server
+{
 
 	public static final int Port = 2737;
+
 	public static void main(String[] args) throws Exception
 	{
 		Scanner in = new Scanner(System.in);
 		System.out.println("Input -1 to STOP SERVER");
-		while(true){
-		Socket cs = null;
-        try {
-            cs = new Socket("localhost",Port);
-        } catch (IOException ex) {
-            System.out.println(ex);
-            continue;
-        }
-		System.out.println("Enter Integer n and FileName");
-		int n = in.nextInt();
-		if(n==-1)
-			break;
-		String fileName = in.next();
-		/*File file = new File(fileName);
-		if(file.exists())
+		while(true)
 		{
-			String msg = "This file exists in the system. Choose a different Name.";
-			System.out.println(msg);
-			continue;
-		}
-		file.createNewFile();*/	
-		Thread new_thread = new generateRequest(cs,fileName,n);
-		new_thread.start();
-        try {
-                new_thread.join();
-            } catch (InterruptedException ex) {
-                System.out.println(ex);
-            }
+			System.out.println("Enter Integer n and FileName");
+			int n;
+			String fileName;
+			try
+			{
+				n = in.nextInt();
+				if(n==-1)
+					break;
+				fileName = in.next();
+			}
+			catch(Exception e)
+			{
+				System.out.println("Invalid input format.");
+				in.nextLine();
+				continue;
+			}
+
+			File file = new File(fileName);
+			if(file.exists())
+			{
+				System.out.println("This file exists in the system. Choose a different Name.");
+				continue;
+			}
+			file.createNewFile();
+
+
+			Socket cs = null;
+	        try
+			{
+	            cs = new Socket("localhost",Port);
+	        }
+			catch (Exception ex)
+			{
+	            System.out.println("The connection to client could not be established.");
+				Thread.sleep(3000);
+	            continue;
+        	}
+
+			Thread new_thread = new generateRequest(cs,fileName,n);
+			new_thread.start();
+	        try
+			{
+	             new_thread.join();
+	        }
+			catch (InterruptedException ex)
+			{
+	             System.out.println("Interrupt occured while waiting for the thread");
+			}
 		}
 	}
 }
@@ -53,36 +72,37 @@ class generateRequest extends Thread
 	private Socket sock;
 	private String fileName;
 	private int n;
-	public generateRequest(Socket sock,String file,int n) 
+	public generateRequest(Socket sock,String file,int n)
 	{
 		this.sock = sock;
-		this.n=n;
-		this.fileName=file;
+		this.n = n;
+		this.fileName = file;
 	}
-	
+
 	@Override
 	public void run()
 	{
 		String request = fileName+" "+n+"\n";
-        try{
-		sock.getOutputStream().write(request.getBytes("UTF-8"));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-		String response = reader.readLine();
-		System.out.println(response);
-		int count  = 1;
-        BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
-            if(response.startsWith("Ok"))
+        try
+		{
+			sock.getOutputStream().write(request.getBytes("UTF-8"));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+			String response = reader.readLine();
+			System.out.println(response);
+			int count  = 1;
+        	if(response.startsWith("Ok"))
             {
                 File file = new File(fileName);
                 FileOutputStream fis = new FileOutputStream(file);
 				int size = Integer.parseInt(reader.readLine());
 				System.out.println(size);
-                int data;
-                data = bis.read();
-                while(count < size){
-                        fis.write(data);
-                        data = bis.read();   
-						count++;
+
+				DataInputStream bis = new DataInputStream(sock.getInputStream());
+                while(count <= size)
+				{
+					byte data = bis.readByte();
+					fis.write(data);
+                    count++;
                 }
                 fis.close();
             }
@@ -93,15 +113,21 @@ class generateRequest extends Thread
             }
         }
         catch(Exception ex)
-            {
-                System.out.println(ex);
-                return ;
-            }
+        {
+            System.out.println(ex);
+            return ;
+        }
+
+		System.out.println("File recieved.");
         handleAcknowledgment ack = new handleAcknowledgment(sock);
         ack.start();
-        try {
+        try
+		{
             ack.join();
-        } catch (InterruptedException ex) {
+			Thread.sleep(3000);
+        }
+		catch (InterruptedException ex)
+		{
             System.out.println(ex);
         }
 	}
@@ -111,12 +137,12 @@ class generateRequest extends Thread
 class handleAcknowledgment extends Thread
 {
 	private Socket sock;
-	
+
 	public handleAcknowledgment(Socket sock)
 	{
 		this.sock = sock;
 	}
-	
+
 	@Override
 	public void run()
 	{
