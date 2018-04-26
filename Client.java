@@ -260,7 +260,7 @@ class SendFile extends Thread
 				System.out.println(lengthRead);
 				soc.getOutputStream().write(sendData, 0, lengthRead);
 			}
-			soc.getOutputStream().close();
+			soc.getOutputStream().flush();
 			fis.close();
 
 			Thread.sleep(4000);
